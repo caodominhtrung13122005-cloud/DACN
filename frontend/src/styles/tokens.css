@@ -1,0 +1,61 @@
+/* MEKAGREEN Design System Tokens - LOCKED in docs/DESIGN_SYSTEM.md */
+:root {
+  /* Brand Tokens */
+  --color-brand-primary:        #2E7D32; /* Primary Green */
+  --color-brand-primary-hover:  #1B5E20; /* Dark Green */
+  --color-brand-primary-active: #144716;
+  --color-brand-primary-subtle: #E8F5E9; /* Light Green */
+  --color-brand-dark:           #1B5E20;
+  --color-brand-harvest:        #F9A825; /* Harvest Yellow */
+  --color-brand-harvest-text:   #0F172A; /* Slate-900: Chữ trên nền Harvest Yellow */
+
+  /* Neutral Surface Tokens */
+  --color-bg-page:              #FAFAF7; /* Cream White */
+  --color-surface-card:         #FFFFFF;
+  --color-surface-elevated:     #FFFFFF;
+  --color-surface-muted:        #F1F5F9;
+
+  /* Neutral Text Tokens */
+  --color-text-primary:         #0F172A; /* Slate-900: Đọc sắc nét ngoài nắng */
+  --color-text-secondary:       #334155; /* Slate-700: Nhãn, phụ đề */
+  --color-text-muted:           #475569; /* Slate-600: Chú thích, trợ giúp */
+  --color-text-disabled:        #94A3B8; /* Slate-400 */
+
+  /* Border & Divider Tokens */
+  --color-border-default:       #CBD5E1; /* Slate-300: Viền thẻ, tương phản rõ */
+  --color-border-subtle:        #E2E8F0; /* Slate-200: Đường kẻ ngăn cách */
+  --color-border-control:       #94A3B8; /* Slate-400: Viền ô nhập liệu */
+  --color-border-control-focus: #2E7D32; /* Viền khi focus */
+
+  /* Semantic - Success */
+  --color-success-bg:           #DCFCE7; /* Green-100 */
+  --color-success-border:       #86EFAC; /* Green-300 */
+  --color-success-text:         #166534; /* Green-800: Tương phản 6.68:1 */
+
+  /* Semantic - Warning / Soft Reserve */
+  --color-warning-bg:           #FEF3C7; /* Amber-100 */
+  --color-warning-border:       #FCD34D; /* Amber-300 */
+  --color-warning-text:         #92400E; /* Amber-800: Tương phản 6.31:1 */
+
+  /* Semantic - Error / Destructive */
+  --color-error-bg:             #FEF2F2; /* Red-50 */
+  --color-error-border:         #FCA5A5; /* Red-300 */
+  --color-error-text:           #991B1B; /* Red-800: Tương phản 7.82:1 */
+
+  /* Semantic - Info / Guidance */
+  --color-info-bg:              #F0F9FF; /* Sky-50 */
+  --color-info-border:          #BAE6FD; /* Sky-200 */
+  --color-info-text:            #075985; /* Sky-800: Tương phản 7.12:1 */
+
+  /* Radius Tokens */
+  --radius-sm:                  4px;
+  --radius-md:                  8px;
+  --radius-lg:                  12px;
+  --radius-full:                9999px;
+
+  /* Elevation & Shadow Tokens */
+  --shadow-none:                none;
+  --shadow-subtle:              0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-elevated:            0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-modal:               0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}

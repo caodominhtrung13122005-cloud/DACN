@@ -1,0 +1,104 @@
+@import "tailwindcss";
+@import "./tokens.css";
+@import "leaflet/dist/leaflet.css";
+
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  --color-brand-primary: var(--color-brand-primary);
+  --color-brand-primary-hover: var(--color-brand-primary-hover);
+  --color-brand-primary-active: var(--color-brand-primary-active);
+  --color-brand-primary-subtle: var(--color-brand-primary-subtle);
+  --color-brand-dark: var(--color-brand-dark);
+  --color-brand-harvest: var(--color-brand-harvest);
+  --color-brand-harvest-text: var(--color-brand-harvest-text);
+
+  --color-bg-page: var(--color-bg-page);
+  --color-surface-card: var(--color-surface-card);
+  --color-surface-elevated: var(--color-surface-elevated);
+  --color-surface-muted: var(--color-surface-muted);
+
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-disabled: var(--color-text-disabled);
+
+  --color-border-default: var(--color-border-default);
+  --color-border-subtle: var(--color-border-subtle);
+  --color-border-control: var(--color-border-control);
+  --color-border-control-focus: var(--color-border-control-focus);
+
+  --breakpoint-wide: 1400px;
+}
+
+/* Base Box-Sizing */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Page Foundation */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background-color: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography Foundation */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading, 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+    color: var(--color-text-primary);
+    margin: 0;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0;
+    color: var(--color-text-secondary);
+  }
+}
+
+/* Visible Keyboard Focus */
+:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+}
+
+/* Responsive Image & Media Behavior */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Marketplace 4-Column Grid on Wide Desktop (>= 1400px / 1440px) */
+@media (min-width: 1400px) {
+  .marketplace-grid-4col {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
