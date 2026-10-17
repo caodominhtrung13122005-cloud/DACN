@@ -23,6 +23,10 @@ class FoundationDatabaseTest extends TestCase
 
     private function cleanDatabase(): void
     {
+        DB::table('farming_log_photos')->delete();
+        DB::table('farming_logs')->delete();
+        DB::table('crop_seasons')->delete();
+        DB::table('production_area_documents')->delete();
         DB::table('production_areas')->delete();
         DB::table('farmer_profiles')->delete();
         DB::table('buyer_profiles')->delete();
