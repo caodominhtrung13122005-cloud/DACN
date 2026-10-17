@@ -30,6 +30,7 @@ class CropSeasonAndFarmingLogDatabaseTest extends TestCase
     {
         DB::table('farming_log_photos')->delete();
         DB::table('farming_logs')->delete();
+        DB::table('harvest_listings')->delete();
         DB::table('crop_seasons')->delete();
         DB::table('production_area_documents')->delete();
         DB::table('production_areas')->delete();
