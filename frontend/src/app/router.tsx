@@ -16,8 +16,9 @@ import { FarmerPlaceholderPage } from '../pages/farmer/FarmerPlaceholderPage'
 import { BuyerPlaceholderPage } from '../pages/buyer/BuyerPlaceholderPage'
 import { AdminPlaceholderPage } from '../pages/admin/AdminPlaceholderPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
-
 import { DevPrimitivesPreviewPage } from '../pages/dev/DevPrimitivesPreviewPage'
+import { ProtectedRoute } from '../components/auth/ProtectedRoute'
+import { GuestRoute } from '../components/auth/GuestRoute'
 
 export const router = createBrowserRouter([
   {
@@ -32,13 +33,31 @@ export const router = createBrowserRouter([
       { path: 'trace', element: <TraceabilityPage /> },
       { path: 'trace/:code', element: <TraceabilityPage /> },
       { path: 'for-farmers', element: <ForFarmersPage /> },
-      { path: 'login', element: <LoginPage /> },
-      { path: 'register', element: <RegisterPage /> },
+      {
+        path: 'login',
+        element: (
+          <GuestRoute>
+            <LoginPage />
+          </GuestRoute>
+        ),
+      },
+      {
+        path: 'register',
+        element: (
+          <GuestRoute>
+            <RegisterPage />
+          </GuestRoute>
+        ),
+      },
     ],
   },
   {
     path: '/farmer',
-    element: <FarmerLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={['FARMER']}>
+        <FarmerLayout />
+      </ProtectedRoute>
+    ),
     children: [
       { index: true, element: <FarmerPlaceholderPage /> },
       { path: '*', element: <FarmerPlaceholderPage /> },
@@ -46,7 +65,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/buyer',
-    element: <BuyerLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={['BUYER']}>
+        <BuyerLayout />
+      </ProtectedRoute>
+    ),
     children: [
       { index: true, element: <BuyerPlaceholderPage /> },
       { path: '*', element: <BuyerPlaceholderPage /> },
@@ -54,7 +77,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/admin',
-    element: <AdminLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={['ADMIN']}>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
     children: [
       { index: true, element: <AdminPlaceholderPage /> },
       { path: '*', element: <AdminPlaceholderPage /> },
@@ -69,4 +96,3 @@ export const router = createBrowserRouter([
     element: <NotFoundPage />,
   },
 ])
-

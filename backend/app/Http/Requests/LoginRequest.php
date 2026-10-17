@@ -36,7 +36,7 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'phone.required' => 'Số điện thoại là bắt buộc.',
+            'phone.required' => 'Số điện thoại hoặc Email là bắt buộc.',
             'password.required' => 'Mật khẩu là bắt buộc.',
         ];
     }

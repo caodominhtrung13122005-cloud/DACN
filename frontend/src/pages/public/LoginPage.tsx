@@ -1,32 +1,71 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { CheckCircle2, Lock, Shield, Sprout, User } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { CheckCircle2, Lock, Shield, Phone, Sprout } from 'lucide-react'
 import { Alert, Button, Input } from '../../components/ui'
+import { useAuth } from '../../features/auth'
+import axios from 'axios'
+import type { UserRole } from '../../types/auth'
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const [identifier, setIdentifier] = useState('')
+  const location = useLocation()
+  const { login } = useAuth()
+
+  const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
-  const handleLogin = (e: FormEvent) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault()
     setErrorMessage('')
 
-    if (!identifier.trim() || !password.trim()) {
-      setErrorMessage('Vui lòng điền đầy đủ Số điện thoại/Email và Mật khẩu.')
+    const cleanPhone = phone.trim()
+    if (!cleanPhone || !password.trim()) {
+      setErrorMessage('Vui lòng điền đầy đủ Số điện thoại hoặc Email và Mật khẩu.')
       return
     }
 
-    // Visual demo simulation (No real backend API yet)
     setLoading(true)
-    setTimeout(() => {
+    try {
+      const user = await login({
+        phone: cleanPhone,
+        password,
+        remember: rememberMe,
+      })
+
+      // Determine redirect path
+      const stateFrom = (location.state as { from?: { pathname?: string } })?.from?.pathname
+      if (stateFrom) {
+        navigate(stateFrom, { replace: true })
+        return
+      }
+
+      // Default role redirect
+      const roleHomeMap: Record<UserRole, string> = {
+        FARMER: '/farmer',
+        BUYER: '/buyer',
+        ADMIN: '/admin',
+      }
+      navigate(roleHomeMap[user.role] || '/marketplace', { replace: true })
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 422) {
+          setErrorMessage(err.response.data?.message || 'Thông tin đăng nhập không chính xác.')
+        } else if (err.response?.status === 403) {
+          setErrorMessage(err.response.data?.message || 'Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ quản trị viên.')
+        } else if (err.response?.status === 429) {
+          setErrorMessage(err.response.data?.message || 'Bạn đã thử đăng nhập quá nhiều lần. Vui lòng đợi trong giây lát.')
+        } else {
+          setErrorMessage(err.response?.data?.message || 'Đăng nhập không thành công. Vui lòng thử lại.')
+        }
+      } else {
+        setErrorMessage('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại kết nối mạng.')
+      }
+    } finally {
       setLoading(false)
-      // Visual feedback: navigate to marketplace or show success
-      navigate('/marketplace')
-    }, 700)
+    }
   }
 
   return (
@@ -96,15 +135,15 @@ export function LoginPage() {
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-5">
             <Input
-              label="Số điện thoại hoặc Email"
+              label="Số điện thoại hoặc Email đăng nhập"
               required
               id="identifier-input"
               type="text"
               autoComplete="username"
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
-              placeholder="vd: 0901234567 hoặc garden@mekagreen.vn"
-              icon={<User className="w-4 h-4 text-slate-400" />}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="0912345678 hoặc email@example.com"
+              icon={<Phone className="w-4 h-4 text-slate-400" />}
             />
 
             <div className="space-y-1.5">
@@ -117,7 +156,7 @@ export function LoginPage() {
                 </label>
                 <button
                   type="button"
-                  onClick={() => alert('Chức năng khôi phục mật khẩu sẽ được hỗ trợ qua SMS/Email.')}
+                  onClick={() => alert('Theo quy tắc BR-001 / ADR-010: Tài khoản chưa có SMS OTP tạm thời chưa hỗ trợ tự phục hồi mật khẩu. Vui lòng liên hệ Ban quản trị.')}
                   className="text-xs text-[var(--color-brand-primary)] hover:underline font-medium"
                 >
                   Quên mật khẩu?
@@ -151,6 +190,7 @@ export function LoginPage() {
 
             {/* Submit CTA */}
             <Button
+              id="login-submit-btn"
               type="submit"
               variant="primary"
               size="lg"

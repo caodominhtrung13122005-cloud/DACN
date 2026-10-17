@@ -313,6 +313,35 @@ class AuthenticationTest extends BaseTestCase
         $this->assertAuthenticatedAs($user);
     }
 
+    public function test_successful_login_with_email_and_password(): void
+    {
+        $user = User::factory()->create([
+            'phone' => '0933445588',
+            'email' => 'farmer.email@mekagreen.vn',
+            'password' => Hash::make('CorrectPassword123!'),
+            'role' => 'FARMER',
+            'account_type' => 'INDIVIDUAL',
+            'status' => 'ACTIVE',
+        ]);
+
+        $response = $this->postJson('/api/login', [
+            'phone' => 'farmer.email@mekagreen.vn',
+            'password' => 'CorrectPassword123!',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'message' => 'Đăng nhập thành công.',
+                'user' => [
+                    'id' => $user->id,
+                    'email' => 'farmer.email@mekagreen.vn',
+                    'role' => 'FARMER',
+                ],
+            ]);
+
+        $this->assertAuthenticatedAs($user);
+    }
+
     public function test_failed_login_with_incorrect_password(): void
     {
         User::factory()->create([

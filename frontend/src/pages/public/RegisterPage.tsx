@@ -4,15 +4,19 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
+  Mail,
   Sprout,
   Truck,
   User,
 } from 'lucide-react'
 import { Alert, Button, Card, CardContent, Input, Select } from '../../components/ui'
+import { useAuth } from '../../features/auth'
+import axios from 'axios'
 import type { FarmerAccountType, UserRole } from '../../types/auth'
 
 export function RegisterPage() {
   const navigate = useNavigate()
+  const { register } = useAuth()
 
   // Step state: 1 (Role Selection), 2 (Account Details)
   const [step, setStep] = useState<1 | 2>(1)
@@ -25,6 +29,7 @@ export function RegisterPage() {
   // Step 2 State
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
   const [province, setProvince] = useState('DT')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -37,17 +42,28 @@ export function RegisterPage() {
     setStep(2)
   }
 
-  const handleStep2Submit = (e: FormEvent) => {
+  const handleStep2Submit = async (e: FormEvent) => {
     e.preventDefault()
     setErrorMessage('')
 
-    if (!fullName.trim() || !phone.trim() || !password.trim()) {
+    const cleanFullName = fullName.trim()
+    const cleanPhone = phone.trim()
+    const cleanEmail = email.trim()
+
+    if (!cleanFullName || !cleanPhone || !password.trim()) {
       setErrorMessage('Vui lòng điền đầy đủ các trường thông tin bắt buộc (*).')
       return
     }
 
-    if (password.length < 6) {
-      setErrorMessage('Mật khẩu cần tối thiểu 6 ký tự.')
+    // Vietnamese phone validation
+    const phoneRegex = /^0[35789][0-9]{8}$/
+    if (!phoneRegex.test(cleanPhone)) {
+      setErrorMessage('Số điện thoại không đúng định dạng di động Việt Nam (10 chữ số, bắt đầu bằng 03, 05, 07, 08, 09).')
+      return
+    }
+
+    if (password.length < 8) {
+      setErrorMessage('Mật khẩu cần tối thiểu 8 ký tự.')
       return
     }
 
@@ -61,12 +77,42 @@ export function RegisterPage() {
       return
     }
 
-    // Visual demo simulation
     setLoading(true)
-    setTimeout(() => {
+    try {
+      const user = await register({
+        phone: cleanPhone,
+        password,
+        full_name: cleanFullName,
+        role: selectedRole === 'FARMER' ? 'FARMER' : 'BUYER',
+        account_type: selectedRole === 'FARMER' ? farmerType : null,
+        email: cleanEmail || null,
+      })
+
+      // Redirect to respective dashboard upon successful registration
+      if (user.role === 'FARMER') {
+        navigate('/farmer', { replace: true })
+      } else {
+        navigate('/buyer', { replace: true })
+      }
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 422) {
+          const errors = err.response.data?.errors
+          if (errors) {
+            const firstError = Object.values(errors).flat()[0] as string
+            setErrorMessage(firstError || 'Thông tin đăng ký không hợp lệ.')
+          } else {
+            setErrorMessage(err.response.data?.message || 'Thông tin đăng ký không hợp lệ.')
+          }
+        } else {
+          setErrorMessage(err.response?.data?.message || 'Đăng ký không thành công. Vui lòng thử lại.')
+        }
+      } else {
+        setErrorMessage('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại kết nối mạng.')
+      }
+    } finally {
       setLoading(false)
-      navigate('/marketplace')
-    }, 800)
+    }
   }
 
   return (
@@ -174,7 +220,7 @@ export function RegisterPage() {
               {/* Sub-type for Farmer (ADR-007) */}
               <div className="mt-5 pt-4 border-t border-emerald-950/10 space-y-2">
                 <span className="text-xs font-semibold text-[var(--color-text-secondary)] block">
-                  Loại hình canh tác:
+                  Loại hình tài khoản (Bắt buộc cho Nông dân):
                 </span>
                 <div className="space-y-1.5 text-xs">
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -185,7 +231,7 @@ export function RegisterPage() {
                       onChange={() => setFarmerType('INDIVIDUAL')}
                       className="text-[var(--color-brand-primary)] focus:ring-[var(--color-brand-primary)]"
                     />
-                    <span>Nông hộ cá thể (Vườn gia đình)</span>
+                    <span>Nông hộ cá thể (INDIVIDUAL)</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -195,7 +241,7 @@ export function RegisterPage() {
                       onChange={() => setFarmerType('COOPERATIVE')}
                       className="text-[var(--color-brand-primary)] focus:ring-[var(--color-brand-primary)]"
                     />
-                    <span>Hợp tác xã nông nghiệp</span>
+                    <span>Hợp tác xã nông nghiệp (COOPERATIVE)</span>
                   </label>
                 </div>
               </div>
@@ -245,7 +291,7 @@ export function RegisterPage() {
               {/* Business profile examples (BR-004a: Profile types, NOT separate auth roles) */}
               <div className="mt-5 pt-4 border-t border-emerald-950/10 space-y-2">
                 <span className="text-xs font-semibold text-[var(--color-text-secondary)] block">
-                  Hồ sơ hoạt động (Ví dụ tham khảo):
+                  Hồ sơ hoạt động dự kiến:
                 </span>
                 <select
                   value={buyerProfileType}
@@ -266,6 +312,7 @@ export function RegisterPage() {
 
           <div className="flex justify-end pt-2">
             <Button
+              id="step1-continue-btn"
               type="submit"
               variant="primary"
               size="lg"
@@ -296,8 +343,8 @@ export function RegisterPage() {
                   <strong>
                     {selectedRole === 'FARMER'
                       ? farmerType === 'INDIVIDUAL'
-                        ? 'Nông hộ cá thể (FARMER)'
-                        : 'Hợp tác xã nông nghiệp (FARMER)'
+                        ? 'Nông hộ cá thể (FARMER - INDIVIDUAL)'
+                        : 'Hợp tác xã nông nghiệp (FARMER - COOPERATIVE)'
                       : 'Bên mua / Doanh nghiệp thu mua (BUYER)'}
                   </strong>
                 </span>
@@ -321,33 +368,46 @@ export function RegisterPage() {
 
             <form onSubmit={handleStep2Submit} className="space-y-4">
               <Input
-                label="Họ và tên người đại diện / Tên nhà vườn"
+                label="Họ và tên người đại diện / Tên chủ tài khoản"
                 required
                 id="name-input"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="vd: Nguyễn Văn Năm hoặc HTX Nông nghiệp Cao Lãnh"
+                placeholder="vd: Nguyễn Văn Nông hoặc HTX Nông nghiệp Cao Lãnh"
                 icon={<User className="w-4 h-4 text-slate-400" />}
               />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
-                  label="Số điện thoại liên hệ chính"
+                  label="Số điện thoại đăng nhập chính"
                   required
                   id="phone-input"
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="0901234567"
-                  helperText="Dùng để nhận cuộc gọi/Zalo từ đối tác"
+                  placeholder="0912345678"
+                  helperText="10 chữ số (bắt đầu bằng 03, 05, 07, 08, 09)"
                 />
 
+                <Input
+                  label="Email liên hệ (Tùy chọn)"
+                  id="email-input"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="vd: lienhe@nongsan.vn"
+                  icon={<Mail className="w-4 h-4 text-slate-400" />}
+                  helperText="Có thể để trống theo PO-001"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Select
-                  label="Tỉnh / Thành phố"
-                  required
+                  label="Địa bàn hoạt động dự kiến"
                   id="province-select"
                   value={province}
                   onChange={(e) => setProvince(e.target.value)}
+                  helperText="Thiết lập chi tiết ở bước Hoàn thiện hồ sơ (S1B)"
                 >
                   <option value="DT">Đồng Tháp</option>
                   <option value="HCM">Thành phố Hồ Chí Minh</option>
@@ -358,9 +418,7 @@ export function RegisterPage() {
                   <option value="AG">An Giang</option>
                   <option value="CM">Cà Mau</option>
                 </Select>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label htmlFor="reg-pwd" className="block text-sm font-medium text-[var(--color-text-secondary)]">
                     Mật khẩu đăng nhập <span className="text-red-600 font-semibold">*</span>
@@ -371,35 +429,36 @@ export function RegisterPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Tối thiểu 6 ký tự"
-                    className="w-full rounded-[var(--radius-md,8px)] bg-white text-[var(--color-text-primary)] placeholder:text-[var(--color-text-disabled)] transition-colors text-base md:text-sm px-3.5 py-2 min-h-[44px] md:min-h-[40px] border border-[var(--color-border-control)] focus:border-2 focus:border-[var(--color-brand-primary)] focus:outline-none focus:ring-2 focus:ring-green-100"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label htmlFor="reg-confirm-pwd" className="block text-sm font-medium text-[var(--color-text-secondary)]">
-                    Xác nhận mật khẩu <span className="text-red-600 font-semibold">*</span>
-                  </label>
-                  <input
-                    id="reg-confirm-pwd"
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Nhập lại mật khẩu"
+                    placeholder="Tối thiểu 8 ký tự"
                     className="w-full rounded-[var(--radius-md,8px)] bg-white text-[var(--color-text-primary)] placeholder:text-[var(--color-text-disabled)] transition-colors text-base md:text-sm px-3.5 py-2 min-h-[44px] md:min-h-[40px] border border-[var(--color-border-control)] focus:border-2 focus:border-[var(--color-brand-primary)] focus:outline-none focus:ring-2 focus:ring-green-100"
                   />
                 </div>
               </div>
 
+              <div className="space-y-1.5">
+                <label htmlFor="reg-confirm-pwd" className="block text-sm font-medium text-[var(--color-text-secondary)]">
+                  Xác nhận mật khẩu <span className="text-red-600 font-semibold">*</span>
+                </label>
+                <input
+                  id="reg-confirm-pwd"
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Nhập lại mật khẩu vừa đặt"
+                  className="w-full rounded-[var(--radius-md,8px)] bg-white text-[var(--color-text-primary)] placeholder:text-[var(--color-text-disabled)] transition-colors text-base md:text-sm px-3.5 py-2 min-h-[44px] md:min-h-[40px] border border-[var(--color-border-control)] focus:border-2 focus:border-[var(--color-brand-primary)] focus:outline-none focus:ring-2 focus:ring-green-100"
+                />
+              </div>
+
               {/* Agreement checkbox */}
               <div className="pt-2">
-                <label className="flex items-start gap-2.5 cursor-pointer">
+                <label htmlFor="agree-terms-checkbox" className="flex items-start gap-2.5 cursor-pointer">
                   <input
+                    id="agree-terms-checkbox"
                     type="checkbox"
                     checked={agreeTerms}
                     onChange={(e) => setAgreeTerms(e.target.checked)}
-                    className="h-4 w-4 mt-0.5 rounded border-slate-300 text-[var(--color-brand-primary)] focus:ring-[var(--color-brand-primary)]"
+                    className="h-4 w-4 mt-0.5 rounded border-slate-300 text-[var(--color-brand-primary)] focus:ring-[var(--color-brand-primary)] cursor-pointer"
                   />
                   <span className="text-xs text-[var(--color-text-secondary)] leading-relaxed">
                     Tôi đồng ý với{' '}
@@ -423,6 +482,7 @@ export function RegisterPage() {
                 </Button>
 
                 <Button
+                  id="register-submit-btn"
                   type="submit"
                   variant="primary"
                   size="lg"

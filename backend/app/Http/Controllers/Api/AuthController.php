@@ -54,8 +54,8 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request): JsonResponse
     {
-        $phone = $request->input('phone');
-        $throttleKey = Str::transliterate(Str::lower($phone) . '|' . $request->ip());
+        $loginInput = trim($request->input('phone'));
+        $throttleKey = Str::transliterate(Str::lower($loginInput) . '|' . $request->ip());
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
@@ -66,7 +66,9 @@ class AuthController extends Controller
             ], 429);
         }
 
-        if (! Auth::attempt(['phone' => $phone, 'password' => $request->input('password')], $request->boolean('remember'))) {
+        $loginField = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+
+        if (! Auth::attempt([$loginField => $loginInput, 'password' => $request->input('password')], $request->boolean('remember'))) {
             RateLimiter::hit($throttleKey, 60);
 
             return response()->json([

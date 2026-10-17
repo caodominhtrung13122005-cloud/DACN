@@ -1,10 +1,25 @@
 import { useState } from 'react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
-import { Menu, Sprout } from 'lucide-react'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { LogOut, Menu, Sprout } from 'lucide-react'
 import { Button, Drawer } from '../components/ui'
+import { useAuth } from '../features/auth'
+import type { UserRole } from '../types/auth'
 
 export function PublicLayout() {
+  const navigate = useNavigate()
+  const { user, isAuthenticated, logout } = useAuth()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  const rolePortalMap: Record<UserRole, { path: string; label: string }> = {
+    FARMER: { path: '/farmer', label: 'Cổng Nông dân' },
+    BUYER: { path: '/buyer', label: 'Cổng Thu mua' },
+    ADMIN: { path: '/admin', label: 'Quản trị' },
+  }
+
+  const handleLogout = async () => {
+    await logout()
+    navigate('/', { replace: true })
+  }
 
   const navLinks = [
     { label: 'Trang chủ', path: '/' },
@@ -61,26 +76,53 @@ export function PublicLayout() {
           </nav>
 
           {/* Desktop Auth Actions */}
-          <div className="hidden lg:flex items-center gap-2.5 shrink-0">
-            <Link to="/login">
-              <Button variant="ghost" size="sm">
-                Đăng nhập
+          {isAuthenticated && user ? (
+            <div className="hidden lg:flex items-center gap-2.5 shrink-0">
+              <Link to={rolePortalMap[user.role]?.path || '/'}>
+                <Button variant="secondary" size="sm" className="font-semibold text-xs text-emerald-800 bg-emerald-50 border-emerald-200 hover:bg-emerald-100">
+                  {rolePortalMap[user.role]?.label || 'Tài khoản'}: {user.full_name}
+                </Button>
+              </Link>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="text-xs text-slate-600 hover:text-red-600"
+              >
+                <LogOut className="w-3.5 h-3.5 mr-1" />
+                Đăng xuất
               </Button>
-            </Link>
-            <Link to="/register">
-              <Button variant="primary" size="sm">
-                Đăng ký tài khoản
-              </Button>
-            </Link>
-          </div>
+            </div>
+          ) : (
+            <div className="hidden lg:flex items-center gap-2.5 shrink-0">
+              <Link to="/login">
+                <Button variant="ghost" size="sm">
+                  Đăng nhập
+                </Button>
+              </Link>
+              <Link to="/register">
+                <Button variant="primary" size="sm">
+                  Đăng ký tài khoản
+                </Button>
+              </Link>
+            </div>
+          )}
 
           {/* Mobile Menu Hamburger */}
           <div className="flex lg:hidden items-center gap-2">
-            <Link to="/login">
-              <Button variant="ghost" size="sm" className="px-2.5 text-xs">
-                Đăng nhập
-              </Button>
-            </Link>
+            {isAuthenticated && user ? (
+              <Link to={rolePortalMap[user.role]?.path || '/'}>
+                <Button variant="secondary" size="sm" className="px-2.5 text-xs text-emerald-800 bg-emerald-50">
+                  {user.full_name}
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/login">
+                <Button variant="ghost" size="sm" className="px-2.5 text-xs">
+                  Đăng nhập
+                </Button>
+              </Link>
+            )}
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(true)}
@@ -102,6 +144,17 @@ export function PublicLayout() {
         size="sm"
       >
         <div className="flex flex-col gap-5 py-2">
+          {isAuthenticated && user && (
+            <div className="p-3 bg-emerald-50 rounded-[var(--radius-md,8px)] border border-emerald-100">
+              <div className="text-xs font-bold text-emerald-800">
+                {user.full_name}
+              </div>
+              <div className="text-[11px] text-emerald-600">
+                Vai trò: {rolePortalMap[user.role]?.label || user.role} • {user.phone}
+              </div>
+            </div>
+          )}
+
           <nav className="flex flex-col gap-1.5" aria-label="Điều hướng di động">
             {navLinks.map((link) => (
               <NavLink
@@ -125,16 +178,40 @@ export function PublicLayout() {
           <hr className="border-[var(--color-border-subtle)]" />
 
           <div className="flex flex-col gap-2.5">
-            <Link to="/login" onClick={closeMobileMenu} className="w-full">
-              <Button variant="secondary" size="md" className="w-full justify-center">
-                Đăng nhập
-              </Button>
-            </Link>
-            <Link to="/register" onClick={closeMobileMenu} className="w-full">
-              <Button variant="primary" size="md" className="w-full justify-center">
-                Đăng ký tài khoản
-              </Button>
-            </Link>
+            {isAuthenticated && user ? (
+              <>
+                <Link to={rolePortalMap[user.role]?.path || '/'} onClick={closeMobileMenu} className="w-full">
+                  <Button variant="primary" size="md" className="w-full justify-center">
+                    Truy cập {rolePortalMap[user.role]?.label || 'Bảng điều khiển'}
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="md"
+                  onClick={() => {
+                    handleLogout()
+                    closeMobileMenu()
+                  }}
+                  className="w-full justify-center text-red-600 hover:bg-red-50"
+                >
+                  <LogOut className="w-4 h-4 mr-1.5" />
+                  Đăng xuất tài khoản
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" onClick={closeMobileMenu} className="w-full">
+                  <Button variant="secondary" size="md" className="w-full justify-center">
+                    Đăng nhập
+                  </Button>
+                </Link>
+                <Link to="/register" onClick={closeMobileMenu} className="w-full">
+                  <Button variant="primary" size="md" className="w-full justify-center">
+                    Đăng ký tài khoản
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </Drawer>

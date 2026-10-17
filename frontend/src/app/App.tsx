@@ -1,12 +1,15 @@
 import { RouterProvider } from 'react-router-dom'
 import { router } from './router'
 import { ToastProvider } from '../components/ui'
+import { AuthProvider } from '../features/auth'
 
 export function App() {
   return (
-    <ToastProvider>
-      <RouterProvider router={router} />
-    </ToastProvider>
+    <AuthProvider>
+      <ToastProvider>
+        <RouterProvider router={router} />
+      </ToastProvider>
+    </AuthProvider>
   )
 }
 
