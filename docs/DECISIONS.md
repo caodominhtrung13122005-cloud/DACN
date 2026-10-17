@@ -119,4 +119,26 @@ This document tracks key technical and design decisions made during the project,
 
 ---
 
-> _Last updated: 2026-10-08_
+## ADR-010: Database Architecture, Relational Schema (14 Tables) & PO Decisions (PO-001 to PO-004)
+- **Date**: 2026-10-14
+- **Status**: Accepted (Approved by Product Owner)
+- **Context**: Architecture audit and database schema finalization needed for the relational database model, authentication identifiers, admin moderation independence, listing closure integrity with active reserves, and QR traceability anchoring.
+- **Decision**:
+  1. **PO-001 Phone-Centric Registration**: Phone number (`phone`) is the required, unique identifier for account registration. Email is optional (`nullable`, unique if provided). No claim of phone verification on the platform in MVP until an SMS OTP gateway is integrated.
+  2. **PO-002 Independent Admin Moderation**: Add an independent `moderation_status` (`APPROVED`, `FLAGGED`, `HIDDEN`) to `harvest_listings`. Admin moderation never overwrites the 5 locked business states (`AVAILABLE`, `PARTIALLY_COMMITTED`, `FULLY_COMMITTED`, `CLOSED`, `CANCELLED`) and never modifies confirmed agreements. Public marketplace and map queries filter by `status IN ('AVAILABLE', 'PARTIALLY_COMMITTED') AND moderation_status = 'APPROVED'`.
+  3. **PO-003 Listing Closure Constraint with Active Reserves**: Prevent closing (`CLOSED`) or cancelling (`CANCELLED`) a harvest listing while any related procurement agreement is `PENDING_CONFIRMATION`. Farmers or buyers must explicitly cancel unconfirmed agreements according to BR-046a (releasing soft reserves) or wait for confirmation before the listing can be closed.
+  4. **PO-004 QR Traceability Anchoring**: Each `harvest_listing` has a unique, non-sequential `trace_code` used by the public QR traceability page `T-04` (`/trace/:trace_code`). No separate `harvest_batches` table in MVP; traceability reads directly through the linked `crop_seasons`, `production_areas`, and `farming_logs`.
+  5. **14 Normalized Tables**: Exactly 14 tables in schema: `users`, `farmer_profiles`, `buyer_profiles`, `administrative_units`, `production_areas`, `production_area_documents`, `crop_seasons`, `farming_logs`, `farming_log_photos`, `harvest_listings`, `purchase_proposals`, `procurement_agreements`, `contact_access_logs`, `moderation_logs`.
+  6. **Fixed Lock Ordering & Concurrency**: Strict lock hierarchy: `harvest_listings` $\rightarrow$ `procurement_agreements` $\rightarrow$ `purchase_proposals` using pessimistic `SELECT ... FOR UPDATE` and retry loop `DB::transaction(fn, 3)`. Quantity invariants enforced with defense-in-depth at both DB (`CHECK`, `STORED GENERATED`) and application service layer.
+  7. **Foreign Key Integrity**: `ON DELETE RESTRICT` for agreements, proposals, listings, and production areas to prevent accidental deletion of transaction history and audit trails.
+  8. **Authenticated BUYER-Only Contact Access & Guest Privacy**: Only authenticated `BUYER` accounts may access farmer contact information on other users' listings, without requiring a purchase proposal. Listing owners may view their own contact information. Public/guest API responses must never expose phone/Zalo or private GPS.
+  9. **MySQL >= 8.0.16 Requirement & Defense-in-Depth**: Require MySQL >= 8.0.16 for the MVP to guarantee database-level enforcement of `CHECK` constraints and `STORED GENERATED` columns. Business invariants and quantity conservation must be enforced in Laravel service layer as well as database constraints.
+  10. **Phone-Only Account Recovery Limitations**: For phone-only registration without SMS OTP gateway or verified email, automated self-service password recovery is unavailable in MVP. Do not invent an unverified manual password recovery process through Admin.
+  11. **Flexible Text-Based Price Snapshots**: Keep flexible text-based prices (`VARCHAR`) for MVP to reflect agricultural reality (reference price, proposed price, agreed price). Preserve identical price and terms snapshots for dual-confirmed agreements. Numeric price filtering is deferred.
+- **Rationale**: Reconciles the database design with locked UI forms and Vietnamese agricultural business realities; guarantees data integrity, mathematical preservation of inventory, and tamper-proof audit trails.
+- **Consequences**: `ERD.md` is locked as canonical specification for Laravel migrations; Laravel `ProcurementService` must enforce lock hierarchy and defense-in-depth quantity validation. MySQL environment must be 8.0.16 or higher.
+
+---
+
+> _Last updated: 2026-10-14_
+

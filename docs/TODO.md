@@ -29,23 +29,25 @@
 - ✅ UX Review: Báo cáo thẩm định Giai đoạn 7 đã được phê duyệt và khóa (Approved & Locked) — `docs/UX_REVIEW.md`
 - ✅ Design System: Đã phê duyệt và khóa (Approved & Locked) — `docs/DESIGN_SYSTEM.md`
 - ✅ High-fidelity Prototype & UI Lock: Đã phê duyệt và khóa (Approved & Locked) — `docs/HIGH_FIDELITY_UI.md`, `docs/UI_LOCK.md`
-- ⬜ Design data model in `ERD.md` — ON HOLD until UI/UX planning approved
+- ✅ Design data model in `docs/ERD.md` — APPROVED & LOCKED (Database ERD V1: 14 bảng chuẩn hóa, PO-001–PO-004, ADR-010)
 
 ## ⚙️ Backend (Laravel)
 - ⬜ Scaffold Laravel project in `backend/`
 - ⬜ Configure `.env` (database, app key, etc.)
-- ⬜ Set up database & run migrations
-- ⬜ Create User model & authentication (Sanctum / Breeze)
+- ⬜ Set up database & run migrations (14 tables per ERD V1)
+- ⬜ Create User model & authentication (Sanctum SPA session auth)
 - ⬜ Define API routes
 - ⬜ Build first API endpoints
 
 ## 🎨 Frontend (React + Vite)
-- ⬜ Scaffold React + Vite project in `frontend/`
-- ⬜ Install dependencies (axios, react-router, etc.)
-- ⬜ Set up project structure (components, pages, hooks, etc.)
-- ⬜ Connect to backend API
-- ⬜ Build login / register pages
-- ⬜ Build dashboard page
+- ✅ Scaffold React + Vite project in `frontend/`
+- ✅ Install dependencies (axios, react-router, leaflet, lucide-react, etc.)
+- ✅ Set up project structure (components/ui primitives, layouts, pages, styles)
+- ⬜ Connect to backend API (replace mockData with real API client)
+- ⬜ Build login / register authentication integration
+- ⬜ Build farmer dashboard and management screens
+- ⬜ Build buyer management screens
+- ⬜ Build admin moderation screens
 
 ## 🧪 Testing & QA
 - ⬜ Backend unit tests
@@ -60,4 +62,5 @@
 
 ---
 > _Update this file as tasks are completed._
-> _Last updated: 2026-10-08_
+> _Last updated: 2026-10-14 (ERD V1 Approved & Locked)_
+
