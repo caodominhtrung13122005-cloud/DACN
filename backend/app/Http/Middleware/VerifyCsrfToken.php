@@ -14,4 +14,16 @@ class VerifyCsrfToken extends Middleware
     protected $except = [
         //
     ];
+
+    /**
+     * Determine if the application and environment is running unit tests.
+     */
+    protected function runningUnitTests(): bool
+    {
+        if (app()->bound('enforce.csrf')) {
+            return false;
+        }
+
+        return parent::runningUnitTests();
+    }
 }

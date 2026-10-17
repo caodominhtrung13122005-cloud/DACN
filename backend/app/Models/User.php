@@ -45,4 +45,44 @@ class User extends Authenticatable
     protected $casts = [
         'password' => 'hashed',
     ];
+
+    /**
+     * Check if user is a Farmer.
+     */
+    public function isFarmer(): bool
+    {
+        return $this->role === 'FARMER';
+    }
+
+    /**
+     * Check if user is a Buyer.
+     */
+    public function isBuyer(): bool
+    {
+        return $this->role === 'BUYER';
+    }
+
+    /**
+     * Check if user is an Admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'ADMIN';
+    }
+
+    /**
+     * Check if user account is Active.
+     */
+    public function isActive(): bool
+    {
+        return $this->status === 'ACTIVE';
+    }
+
+    /**
+     * Check if user account is Suspended.
+     */
+    public function isSuspended(): bool
+    {
+        return $this->status === 'SUSPENDED';
+    }
 }
