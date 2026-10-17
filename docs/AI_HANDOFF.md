@@ -6,26 +6,22 @@ This document ensures continuity when switching between AI assistants (Antigravi
 ---
 
 ## Current State of the Project
-- **Date**: 2026-10-14
-- **Phase**: Phase S0.2B — Database ERD V1 Correction & Documentation Lock: APPROVED & LOCKED. Ready for Phase S1 (Backend Laravel Scaffolding & Core Auth).
+- **Date**: 2026-10-17
+- **Phase**: Phase S0.4 — Full Relational Database Schema (14 Tables) Completed, Migrated & Verified. Ready for Phase S1 (User Authentication API via Sanctum with Phone & SPA sessions).
 - **What was done**:
   - Independent Technical Architecture Audit completed and documented.
   - Checkpoint commit `c1083d2` created and pushed to GitHub `main` branch preserving all UI/UX specs and React frontend code.
-  - Product Owner approved 4 foundational architectural decisions:
-    - **PO-001:** Số điện thoại là trường định danh bắt buộc và duy nhất (`phone` required & unique). Email là tùy chọn (`email` optional). Không tuyên bố xác minh số điện thoại trên hệ thống khi chưa có cổng SMS OTP thực tế.
-    - **PO-002:** Bổ sung cột độc lập `moderation_status` (`APPROVED`, `FLAGGED`, `HIDDEN`) trên `harvest_listings`. Hành vi kiểm duyệt của Admin độc lập, không thay đổi 5 trạng thái nghiệp vụ chuẩn và không can thiệp thỏa thuận đã `CONFIRMED`.
-    - **PO-003:** Chặn Đóng (`CLOSED`) hoặc Hủy (`CANCELLED`) bài đăng nguồn cung nếu còn thỏa thuận liên quan đang ở trạng thái `PENDING_CONFIRMATION` (đang giữ chỗ sản lượng).
-    - **PO-004:** Mỗi `harvest_listing` có một mã `trace_code` ngẫu nhiên, không tuần tự dùng cho trang truy xuất QR công khai. Không tạo thực thể bảng riêng `harvest_batches` trong phạm vi MVP.
-  - Authored and locked official `docs/ERD.md`: Exactly 14 normalized tables, foreign key restrict policies (`ON DELETE RESTRICT` for transactions and historical audit), mathematical quantity invariants (`available = expected - committed - reserved`), defense-in-depth validation, strict lock ordering (`harvest_listings` $\rightarrow$ `procurement_agreements` $\rightarrow$ `purchase_proposals`), public SQL projections joining `crop_seasons`, and GPS/contact privacy rules.
-  - Synchronized rules across `docs/BUSINESS_RULES.md`, `docs/DECISIONS.md` (ADR-010), and `docs/TODO.md`.
+  - Phase S0.3: Laravel 10.50.3 project scaffolded, `.env` configured, MySQL `mekagreen` connected.
+  - Phase S0.4A: Foundation migrations (`users`, `administrative_units`, `farmer_profiles`, `buyer_profiles`, `production_areas`) with PO-001 phone-centric auth and GPS privacy defaults.
+  - Phase S0.4B: Crop seasons & farming logs migrations (`production_area_documents`, `crop_seasons`, `farming_logs`, `farming_log_photos`) with season dates validation and cascade protections.
+  - Phase S0.4C1: Harvest listings migration (`harvest_listings`) with 4 quantity metrics, STORED GENERATED `available_quantity_kg`, PO-002 independent moderation, PO-004 QR `trace_code`.
+  - Phase S0.4C2: Procurement completion migrations (`purchase_proposals`, `procurement_agreements`, `contact_access_logs`, `moderation_logs`) with 1:1 proposal-agreement enforcement, terms snapshot, dual independent confirmations, cancellation metadata, and audit logs.
+  - Automated isolated testing: Dedicated `mekagreen_testing` database created, full regression test suite (35 tests, 67 assertions) passed 100%.
 
 ## What Has NOT Been Done Yet
-- [ ] Backend (Laravel) scaffolding in `backend/`
-- [ ] MySQL database creation & migration running (14 tables per ERD V1)
-- [ ] User model & Sanctum authentication API
+- [ ] User model & Sanctum authentication API (Phase S1)
 - [ ] Frontend API integration (connecting React to Laravel API)
 - [ ] Farmer, Buyer, Admin portal implementations
-- [ ] Testing & QA (Unit, Feature, Component tests)
 - [ ] Production Deployment & CI/CD pipeline setup
 
 ## Session Log
@@ -34,7 +30,7 @@ This document ensures continuity when switching between AI assistants (Antigravi
 - **2026-10-14 (session 22)**: Executed Phase S0.1 Git Safety Checkpoint. Staged all safe source files and locked specs, created commit `c1083d2` (`checkpoint: baseline locked UI/UX specs and scaffolded React frontend`), and pushed to GitHub `main` branch.
 - **2026-10-14 (session 23)**: Executed Phase S0.2B Database ERD V1 Correction & Documentation Lock. Applied approved Product Owner decisions PO-001 through PO-004. Finalized and locked canonical `docs/ERD.md` with 14 normalized tables, invariants, transaction lock ordering, defense-in-depth, and privacy rules. Updated `docs/BUSINESS_RULES.md`, `docs/DECISIONS.md` (ADR-010), `docs/TODO.md`, and `docs/AI_HANDOFF.md`. Strictly paused at technical gate awaiting backend implementation command.
 - **2026-10-14 (session 24)**: Executed S0.2 Final Check & S0.3 Environment Audit. Applied PO clarifications: Authenticated BUYER-only contact access (owners see own info, guest API never exposes phone/GPS); MySQL >= 8.0.16 mandatory with application-layer invariant checks; phone-only password recovery limitations; flexible text-based price snapshots (numeric filtering deferred). Completed read-only Laragon environment audit.
-- **2026-10-17 (session 25)**: Executed Phase S0.3 (Laravel 10.50.3 scaffolding, local Laragon config, mekagreen database connection) and Phase S0.4A (Foundation database migrations: users, administrative_units, farmer_profiles, buyer_profiles, production_areas; constraints & ON DELETE RESTRICT; PHPUnit Feature test suite passed 10/10). Standing by for Product Owner review.
+- **2026-10-17 (session 25)**: Executed Phase S0.3 (Laravel 10.50.3 foundation scaffolding, local Laragon config, `mekagreen` database connection) and full Phase S0.4 (S0.4A, S0.4B, S0.4C1, S0.4C2). Fully implemented all 14 canonical database tables per ERD V1 with strict MySQL 8.0.30 constraints, stored generated columns, and foreign keys. Configured isolated testing environment (`mekagreen_testing`) and built 35 comprehensive automated PHPUnit Feature Tests (100% pass). Standing by for Product Owner review.
 
 ## Key Decisions Made
 - See [DECISIONS.md](./DECISIONS.md) for full list (ADR-001 through ADR-010).

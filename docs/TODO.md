@@ -32,9 +32,9 @@
 - ✅ Design data model in `docs/ERD.md` — APPROVED & LOCKED (Database ERD V1: 14 bảng chuẩn hóa, PO-001–PO-004, ADR-010)
 
 ## ⚙️ Backend (Laravel)
-- ⬜ Scaffold Laravel project in `backend/`
-- ⬜ Configure `.env` (database, app key, etc.)
-- ⬜ Set up database & run migrations (14 tables per ERD V1)
+- ✅ Scaffold Laravel project in `backend/` (Laravel 10.50.3)
+- ✅ Configure `.env` (`mekagreen` database, app key, isolated testing DB)
+- ✅ Set up database & run migrations (Đầy đủ 14 bảng chuẩn hóa theo ERD V1: S0.4A, S0.4B, S0.4C1, S0.4C2 — 35/35 Feature Tests Passed)
 - ⬜ Create User model & authentication (Sanctum SPA session auth)
 - ⬜ Define API routes
 - ⬜ Build first API endpoints
